@@ -1,0 +1,134 @@
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.12.0/d3.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+
+    <style>
+        .chart {
+            background-color: steelblue;
+
+            /* font: 10px sans-serif;
+            text-align: right;
+            padding: 3px;
+            margin: 1px;
+            color: white; */
+            width: 1000px;
+            height: 1000px;
+        }
+
+        .slid {}
+
+
+        .track {
+            stroke: #000;
+            stroke-opacity: 0.3;
+            stroke-width: 10px;
+        }
+
+        .track-inset {
+            stroke: #ddd;
+            stroke-width: 8px;
+        }
+
+        .track-overlay {
+            pointer-events: stroke;
+            stroke-width: 50px;
+            stroke: transparent;
+            cursor: crosshair;
+        }
+
+        .handle {
+            fill: #fff;
+            stroke: #000;
+            stroke-opacity: 0.5;
+            stroke-width: 1.25px;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <svg class="slid" width="500" height="100">
+
+        </svg>
+    </div>
+    <svg class="chart">
+
+    </svg>
+
+    <script>
+        let coeff = 3
+
+        function moveSlider() {
+            xdata = _.range(0, coeff)
+            ydata = _.map(xdata, (x) => Math.sin(x / coeff))
+
+            // for (i = 0; i < 20; i++) {
+            //     _.range
+            // }
+
+            // var data = [30, 86, 168, 281, 303, 365];
+            d3.select(".chart")
+                .selectAll("circle")
+                .data(xdata)
+                .enter()
+                .append("circle").attr("class", "dot")
+                .attr("r", 3.5)
+                .attr("cx", (d) => 10 * d + 100)
+                .attr("cy", (d, i) => ydata[i] * 10 + 300)
+                .exit().remove()
+
+            // .style("top", function (d) { return d + "px"; })
+            // .text(function (d) { return d; });
+        }
+
+        var svg = d3.select(".slid"),
+            margin = { right: 50, left: 50 },
+            width = +svg.attr("width") - margin.left - margin.right,
+            height = +svg.attr("height");
+
+        var x = d3.scaleLinear()
+            .domain([0, 180])
+            .range([0, width])
+            .clamp(true);
+
+        var slider = svg.append("g")
+            .attr("class", "slider")
+            .attr("transform", "translate(" + margin.left + "," + height / 2 + ")");
+
+        slider.append("line")
+            .attr("class", "track")
+            .attr("x1", x.range()[0])
+            .attr("x2", x.range()[1])
+            .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
+            .attr("class", "track-inset")
+            .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
+            .attr("class", "track-overlay")
+            .call(d3.drag()
+                .on("start.interrupt", function () { slider.interrupt(); })
+                .on("start drag", function () {
+                    handle.attr("cx", x(x.invert(d3.event.x)));
+
+                    ; coeff = d3.event.x / 2
+                    console.log(coeff)
+                    moveSlider()
+                    
+                }));
+
+        slider.insert("g", ".track-overlay")
+            .attr("class", "ticks")
+            .attr("transform", "translate(0," + 18 + ")")
+            .selectAll("text")
+            .data(x.ticks(10))
+            .enter().append("text")
+            .attr("x", x)
+            .attr("text-anchor", "middle")
+            .text(function (d) { return d + "°"; });
+
+        var handle = slider.insert("circle", ".track-overlay")
+            .attr("class", "handle")
+            .attr("r", 9);
+
+
+    </script>
+</body>
